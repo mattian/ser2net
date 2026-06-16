@@ -541,7 +541,14 @@ specifies the allowed remote connections, where the addr is a standard
 address, generally in the form <ip address>,<port>.  Multiple
 addresses can be separated by semicolons, and you can specify remaddr
 more than once.
-.TP
+
+If your version of gensio is 3.0.3 or later, you can use subnet masks
+with remaddr, like:
+.EX
+.I remaddr: 192.168.33.0/24,0;1234:5678:9abc:21::/64,0
+.EE
+and it will allow connections for those entire subnets.
+
 If you set the port for an address to zero, ser2net will accept a
 connection from any port from the given network host.
 .TP
