@@ -39,6 +39,13 @@ if test "x$use_pam" != "xno"; then
     AC_DEFINE([USE_PAM], [], [Enable PAM support])
 fi
 
+have_crypt_r=no
+AC_CHECK_LIB(crypt, crypt_r, [have_crypt_r=yes], [])
+if test $have_crypt_r != "yes"; then
+  AC_MSG_ERROR([No libcrypt with crypt_r()])
+fi
+LIBS="$LIBS -lcrypt"
+
 AC_ARG_WITH(sysfs-led-support,
  [  --with-sysfs-led-support   Enable LED support (Linux only)],
  sysfs_led_support_flag="$withval",

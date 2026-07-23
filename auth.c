@@ -28,6 +28,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <crypt.h>
 #include <gensio/gensio.h>
 #include <gensio/gensio_list.h>
 #include "ser2net.h"
@@ -284,8 +285,11 @@ handle_password(struct gensio *net, const char *authdir, const char *password)
     char username[100];
     char filename[PATH_MAX];
     FILE *pwfile;
-    char readpw[100], *s;
+    char readpw[256], *s;
     int err;
+    bool hashed = true;
+    struct crypt_data cdata;
+    char *newhash;
 
     len = sizeof(username);
     err = gensio_control(net, 0, true, GENSIO_CONTROL_USERNAME, username,
@@ -296,12 +300,21 @@ handle_password(struct gensio *net, const char *authdir, const char *password)
 	return GE_AUTHREJECT;
     }
 
-    if (!construct_auth_path(filename, authdir, username, "password"))
+    if (!construct_auth_path(filename, authdir, username, "hpassword"))
 	return GE_AUTHREJECT;
     pwfile = fopen(filename, "r");
     if (!pwfile) {
-	seout.out(&seout, "Can't open password file %s", filename);
-	return GE_AUTHREJECT;
+	seout.out(&seout,
+		  "Can't open password file %s, falling back to unhashed",
+		  filename);
+	if (!construct_auth_path(filename, authdir, username, "password"))
+	    return GE_AUTHREJECT;
+	pwfile = fopen(filename, "r");
+	if (!pwfile) {
+	    seout.out(&seout, "Can't open password file %s", filename);
+	    return GE_AUTHREJECT;
+	}
+	hashed = false;
     }
     s = fgets(readpw, sizeof(readpw), pwfile);
     fclose(pwfile);
@@ -312,9 +325,30 @@ handle_password(struct gensio *net, const char *authdir, const char *password)
     s = strchr(readpw, '\n');
     if (s)
 	*s = '\0';
-    if (strcmp(readpw, password) == 0)
-	return 0;
-    return GE_NOTSUP;
+    if (!hashed) {
+	if (strcmp(readpw, password) == 0)
+	    return 0;
+	return GE_NOTSUP;
+    }
+
+    /* Supported hash algorithms. */
+    if (!(strncmp(readpw, "$y$", 3) == 0 /* yescrypt */
+	  || strncmp(readpw, "$7$", 3) == 0 /* scrypt */
+	  || strncmp(readpw, "$2b$", 4) == 0 /* bcrypt */
+	  || strncmp(readpw, "$6$", 3) == 0 /* sha512crypt */
+	  || strncmp(readpw, "$5$", 3) == 0)) { /* sha256crypt */
+	seout.out(&seout, "Password file %s has an invalid hash", filename);
+	return GE_NOTSUP;
+    }
+
+    newhash = crypt_r(password, readpw, &cdata);
+    if (!newhash)
+	return GE_NOTSUP;
+
+    if (strcmp(newhash, readpw) != 0)
+	return GE_NOTSUP;
+
+    return 0;
 }
 
 #if defined(USE_PAM)
