@@ -186,6 +186,40 @@ handle_auth_begin(struct gensio *net, const char *authdir, const char *pamauth,
     return GE_NOTSUP;
 }
 
+/*
+ * Construct a secure authorization path.
+ *
+ * filename must be at least MAX_PATH.
+ *
+ * "username" is untrusted, the rest of the data is trusted.
+ */
+static bool
+construct_auth_path(char *filename, const char *authdir, const char *username,
+		    const char *format, ...)
+{
+    size_t baselen;
+    va_list ap;
+
+    /*
+     * '/', '.', and '\' are all parts of things that can modify the base
+     * path.  Don't allow them in usernames.
+     */
+    if (strchr(username, '.') || strchr(username, '/')
+		|| strchr(username, '\\'))
+	return false;
+
+    /* Get a good base path ending in DIRSEP. */
+    baselen = snprintf(filename, PATH_MAX, "%s%c%s%c",
+		       authdir, DIRSEP, username, DIRSEP);
+
+    /* Now append the rest of the path. */
+    va_start(ap, format);
+    vsnprintf(filename + baselen, PATH_MAX - baselen, format, ap);
+    va_end(ap);
+
+    return true;
+}
+
 static int
 handle_precert(struct gensio *net, const char *authdir)
 {
@@ -231,8 +265,8 @@ handle_precert(struct gensio *net, const char *authdir)
 	}
     }
 
-    snprintf(filename, sizeof(filename), "%s%c%s%callowed_certs%c",
-	     authdir, DIRSEP, s, DIRSEP, DIRSEP);
+    if (!construct_auth_path(filename, authdir, s, "allowed_certs%c", DIRSEP))
+	return GE_AUTHREJECT;
     err = gensio_control(net, 0, false, GENSIO_CONTROL_CERT_AUTH,
 			 filename, &len);
     if (err && err != GE_CERTNOTFOUND) {
@@ -262,8 +296,8 @@ handle_password(struct gensio *net, const char *authdir, const char *password)
 	return GE_AUTHREJECT;
     }
 
-    snprintf(filename, sizeof(filename), "%s/%s/password",
-	     authdir, username);
+    if (!construct_auth_path(filename, authdir, username, "password"))
+	return GE_AUTHREJECT;
     pwfile = fopen(filename, "r");
     if (!pwfile) {
 	seout.out(&seout, "Can't open password file %s", filename);
