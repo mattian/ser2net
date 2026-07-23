@@ -318,17 +318,36 @@ Windows Support
 You can build ser2net for windows.  You need a gensio built for
 Windows, of course, and that's supported.  It should just build under
 UCRT64 and/or MINGW64.  Beyond gensio, you will also need
-mingw-w64-x86_64-libyaml installed.
+mingw-w64-x86_64-libyaml installed.  You also need libxcrypt
+installed, but it's currently not available for the Windows
+environments.  You will have to download it from
+https://github.com/besser82/libxcrypt.git, build it, and point
+ser2net to it.
+
+There are issues building libxcrypt.  To build it, download it, then::
+
+  sh autogen.sh
+  ./configure --prefix=$HOME/install/libxcrypt
+
+Now edit Makefile and remove -Werror from WARN_CFLAGS, build, and
+install::
+
+  make
+  make install
+
+It only creates a .a file by default, so all is good for that.  If
+configure runs again, you will have to re-edit the Makefile.
 
 The sysconfdir and datarootdir do not work on Windows, instead it uses
-a file relative to the executable's dectory, ../etc/ser2net and
+a file relative to the executable's directory, ../etc/ser2net and
 ../share/ser2net. Other than that, everything pretty much works the same.
 
 For installation, use the following configuration::
 
   ../configure --sbindir=/Ser2Net/bin --libexecdir=/Ser2Net/bin --mandir=/Ser2Net/man \
       --includedir=/Ser2Net/include --prefix=/Ser2Net \
-      CPPFLAGS=-I$HOME/install/Gensio/include LDFLAGS=-L$HOME/install/Gensio/lib
+      CPPFLAGS="-I$HOME/install/Gensio/include -I$HOME/install/libxcrypt/include" \
+      LDFLAGS="-L$HOME/install/Gensio/lib -L$HOME/install/libxcrypt/lib"
 
 Where gensio is already installed there, and then do::
 
