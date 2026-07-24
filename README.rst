@@ -12,10 +12,10 @@ information on gensios.
 Building
 ========
 
-You need two libraries to build ser2net: libyaml and gensio.  On
-Ubuntu you can install libyaml with:
+You need three libraries to build ser2net: libyaml, libxcrypt and
+gensio.  On Ubuntu you can install libyaml with:
 
-  apt install libyaml-dev
+  apt install libyaml-dev libcrypt-dev
 
 The gensio library may be available on your distro, or it may not, or
 it may be old and missing things you need.  To use the one from your
