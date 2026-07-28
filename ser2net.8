@@ -98,6 +98,10 @@ ignored.
 .I \-v
 Prints the version of the program and exits.
 .TP
+.I \-w
+Allow unhashed passwords.  Normally only hashed passwords are allowed,
+this is for backwards compatibility.
+.TP
 .I \-t <num threads>
 Spawn the given number of threads for ser2net to use.  The default
 is 1.  Only valid if pthreads is enabled at build time.

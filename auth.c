@@ -303,18 +303,18 @@ handle_password(struct gensio *net, const char *authdir, const char *password)
     if (!construct_auth_path(filename, authdir, username, "hpassword"))
 	return GE_AUTHREJECT;
     pwfile = fopen(filename, "r");
-    if (!pwfile) {
+    if (!pwfile && allow_unhashed_passwords) {
 	seout.out(&seout,
 		  "Can't open password file %s, falling back to unhashed",
 		  filename);
 	if (!construct_auth_path(filename, authdir, username, "password"))
 	    return GE_AUTHREJECT;
 	pwfile = fopen(filename, "r");
-	if (!pwfile) {
-	    seout.out(&seout, "Can't open password file %s", filename);
-	    return GE_AUTHREJECT;
-	}
 	hashed = false;
+    }
+    if (!pwfile) {
+	seout.out(&seout, "Can't open password file %s", filename);
+	return GE_AUTHREJECT;
     }
     s = fgets(readpw, sizeof(readpw), pwfile);
     fclose(pwfile);

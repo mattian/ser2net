@@ -194,10 +194,11 @@ define: &confver 1.0
 # # generate a sha512crypt password with:
 # #  openssl passwd -6 >hpassword
 
-# # ser2net, for a little while, supports unhashed passwords.  This is
-# # obviously discouraged and deprecated and may go away.  But you can
-# # create a file named "password" in the same directory and put a
-# # password there.  Make sure it's only readable by ser2net!
+# # ser2net, for a little while, supports unhashed passwords with the
+# # -w option to the main program.  This is obviously discouraged and
+# # deprecated and may go away.  But you can create a file named
+# # "password" in the same directory and put a password there.  Make
+# # sure it's only readable by ser2net!
 
 # # The best, though, is to use certificates.  Create a
 # # directory named /usr/share/ser2net/auth/<user>/allowed_certs,

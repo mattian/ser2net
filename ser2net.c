@@ -227,6 +227,7 @@ struct s2n_threadinfo {
 struct gensio_os_proc_data *procdata;
 struct gensio_os_funcs *so;
 char *rfc2217_signature = "ser2net";
+bool allow_unhashed_passwords;
 
 static char *help_string =
 "%s: Valid parameters are:\n"
@@ -245,6 +246,7 @@ static char *help_string =
 "  -t <num threads> - Use the given number of threads, default 1\n"
 "  -b - unused (was Do CISCO IOS baud-rate negotiation, instead of RFC2217)\n"
 "  -v - print the program's version and exit\n"
+"  -w - Allow unhashed passwords\n"
 "  -s - specify a default signature for RFC2217 protocol\n"
 "  -Y - Handle a yaml configuration string.  This may be specified multiple\n"
 "       times; these strings are strung together as if they were one input\n"
@@ -922,6 +924,10 @@ main(int argc, char *argv[])
 	case 'v':
 	    printf("%s version %s\n", argv[0], VERSION);
 	    return 0;
+
+	case 'w':
+	    allow_unhashed_passwords = true;
+	    break;
 
 	case 's':
             i++;

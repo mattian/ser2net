@@ -42,6 +42,8 @@ extern int ser2net_debug_level;
 
 extern int ser2net_wake_sig;
 
+extern bool allow_unhashed_passwords;
+
 #if (defined(gensio_version_major) && (gensio_version_major > 2 ||	\
      (gensio_version_major == 2 && gensio_version_minor >= 2)))
 #define DO_MDNS
