@@ -110,6 +110,8 @@ f_open(const char *filename, int iop, int mode, ftype **rf)
     if (rv) {
 	if (f->rbuf)
 	    free(f->rbuf);
+	if (f->f)
+	    fclose(f->f);
 	free(f);
     } else {
 	*rf = f;
