@@ -258,8 +258,6 @@ led_sysfs_init(struct led_s *led, const char * const *options, int lineno,
 	eout->out(eout,
 	       "LED '%s': parameter 'device' required, but missing on line %d.",
 	       led->name, lineno);
-	if (drv_data->device)
-	    free(drv_data->device);
 	goto out_err;
     }
 
@@ -297,6 +295,8 @@ led_sysfs_init(struct led_s *led, const char * const *options, int lineno,
     return 0;
 
  out_err:
+    if (drv_data->device)
+	free(drv_data->device);
     free(drv_data);
     return -1;
 }
